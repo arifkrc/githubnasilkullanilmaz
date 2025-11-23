@@ -6,9 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "client": "cd client && npm start",
-    "server": "nodemon server.js",
-    "build": "cd client && npm run build"
+    "server": "nodemon server.js"
   },
   "keywords": ["production", "records", "management"],
   "author": "",

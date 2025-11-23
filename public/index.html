@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Test UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .status {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .status.loading {
+            background: #ffc107;
+            color: #000;
+        }
+        .status.success {
+            background: #4caf50;
+            color: white;
+        }
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 12px;
+            color: #333;
+        }
+        .endpoint-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .endpoint-info code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Backend API Test</h1>
+        <div id="mainStatus" class="status loading">Kontrol ediliyor...</div>
+
+        <!-- Health Check -->
+        <div class="test-section">
+            <h2>✅ Health Check</h2>
+            <div class="endpoint-info">
+                <strong>GET</strong> <code>/api/health</code>
+            </div>
+            <button onclick="testHealth()">Test Et</button>
+            <div id="healthResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Register -->
+        <div class="test-section">
+            <h2>👤 Kullanıcı Kaydı</h2>
+            <div class="endpoint-info">
+                <strong>POST</strong> <code>/api/auth/register</code>
+            </div>
+            <input type="text" id="regUsername" placeholder="Kullanıcı Adı" value="testuser">
+            <input type="email" id="regEmail" placeholder="Email" value="test@example.com">
+            <input type="password" id="regPassword" placeholder="Şifre" value="123456">
+            <input type="text" id="regFullName" placeholder="Ad Soyad" value="Test User">
+            <button onclick="testRegister()">Kayıt Ol</button>
+            <div id="registerResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Login -->
+        <div class="test-section">
+            <h2>🔐 Giriş Yap</h2>
+            <div class="endpoint-info">
+                <strong>POST</strong> <code>/api/auth/login</code>
+            </div>
+            <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+            <input type="password" id="loginPassword" placeholder="Şifre" value="123456">
+            <button onclick="testLogin()">Giriş Yap</button>
+            <div id="loginResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Current User -->
+        <div class="test-section">
+            <h2>👨‍💼 Mevcut Kullanıcı</h2>
+            <div class="endpoint-info">
+                <strong>GET</strong> <code>/api/auth/me</code> (Token gerekli)
+            </div>
+            <button onclick="testMe()">Bilgilerimi Getir</button>
+            <div id="meResponse" class="response" style="display:none;"></div>
+        </div>
+
+        <!-- Production Records -->
+        <div class="test-section">
+            <h2>📊 Üretim Kayıtları</h2>
+            <div class="endpoint-info">
+                <strong>GET</strong> <code>/api/production-records</code> (Token gerekli)
+            </div>
+            <button onclick="testRecords()">Kayıtları Listele</button>
+            <div id="recordsResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://githubnasilkullanilmaz.vercel.app/api';
+        let authToken = null;
+
+        // Initial health check
+        window.onload = async () => {
+            await testHealth();
+        };
+
+        async function testHealth() {
+            const statusDiv = document.getElementById('mainStatus');
+            const responseDiv = document.getElementById('healthResponse');
+            
+            try {
+                statusDiv.className = 'status loading';
+                statusDiv.textContent = 'Health check yapılıyor...';
+                
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Backend çalışıyor!';
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ Backend yanıt verdi ama hata var';
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Backend ulaşılamıyor!';
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+                responseDiv.style.display = 'block';
+            }
+        }
+
+        async function testRegister() {
+            const responseDiv = document.getElementById('registerResponse');
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = 'Kaydediliyor...';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('regUsername').value,
+                        email: document.getElementById('regEmail').value,
+                        password: document.getElementById('regPassword').value,
+                        fullName: document.getElementById('regFullName').value,
+                        role: 'operator'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('token', authToken);
+                }
+                
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.style.display = 'block';
+            } catch (error) {
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Kayıt Ol';
+            }
+        }
+
+        async function testLogin() {
+            const responseDiv = document.getElementById('loginResponse');
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = 'Giriş yapılıyor...';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('token', authToken);
+                }
+                
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.style.display = 'block';
+            } catch (error) {
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Giriş Yap';
+            }
+        }
+
+        async function testMe() {
+            const responseDiv = document.getElementById('meResponse');
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = 'Getiriliyor...';
+            
+            const token = authToken || localStorage.getItem('token');
+            
+            if (!token) {
+                responseDiv.innerHTML = '<pre>Önce giriş yapmalısınız!</pre>';
+                responseDiv.style.display = 'block';
+                button.disabled = false;
+                button.textContent = 'Bilgilerimi Getir';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.style.display = 'block';
+            } catch (error) {
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Bilgilerimi Getir';
+            }
+        }
+
+        async function testRecords() {
+            const responseDiv = document.getElementById('recordsResponse');
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = 'Getiriliyor...';
+            
+            const token = authToken || localStorage.getItem('token');
+            
+            if (!token) {
+                responseDiv.innerHTML = '<pre>Önce giriş yapmalısınız!</pre>';
+                responseDiv.style.display = 'block';
+                button.disabled = false;
+                button.textContent = 'Kayıtları Listele';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/production-records`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.style.display = 'block';
+            } catch (error) {
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Kayıtları Listele';
+            }
+        }
+    </script>
+</body>
+</html>

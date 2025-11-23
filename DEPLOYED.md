@@ -2,6 +2,68 @@
 
 **Live URL:** https://githubnasilkullanilmaz.vercel.app
 
+**Test UI:** https://githubnasilkullanilmaz.vercel.app (Backend'i test etmek için)
+
+---
+
+## ⚠️ ÖNEMLİ DEĞİŞİKLİKLER - Frontend'de Dikkat!
+
+### 🔴 Kaldırılan Alanlar:
+- ❌ **`username`** - Artık YOK! Sadece `email` ve `full_name` kullan
+- ❌ **`created_by`** - Production records'ta yok
+- ❌ **`updated_at`** - Production records'ta yok
+- ❌ **`creator`** - Join'de artık yok
+
+### ✅ Yeni/Değişen Alanlar:
+- ✅ **`password_hash`** - Backend'de (frontend görmez)
+- ✅ **`id`** - UUID (users için), bigint (production_records için)
+- ✅ **Sadece `email`** ile login (username yok!)
+
+### 📝 Frontend'de Yapılması Gerekenler:
+
+```javascript
+// ❌ YANLIŞ - Artık çalışmaz
+const registerData = {
+  username: "mehmet",  // ❌ KALDIRILDI
+  email: "test@test.com",
+  password: "123456"
+};
+
+// ✅ DOĞRU - Yeni format
+const registerData = {
+  email: "test@test.com",  // ✅ Email zorunlu
+  password: "123456",
+  fullName: "Mehmet Öz"    // ✅ Full name zorunlu
+};
+
+// ❌ YANLIŞ - Login için username
+const loginData = {
+  username: "mehmet",  // ❌ Artık yok
+  password: "123456"
+};
+
+// ✅ DOĞRU - Email ile login
+const loginData = {
+  email: "test@test.com",  // ✅ Email ile giriş
+  password: "123456"
+};
+
+// ❌ YANLIŞ - Response'da username bekleme
+user.username  // ❌ undefined olur
+
+// ✅ DOĞRU - Sadece email ve fullName var
+user.email      // ✅ "test@test.com"
+user.fullName   // ✅ "Mehmet Öz"
+
+// ❌ YANLIŞ - Production record'da created_by
+record.createdBy  // ❌ undefined
+record.creator    // ❌ undefined
+record.updatedAt  // ❌ undefined
+
+// ✅ DOĞRU - Sadece created_at var
+record.createdAt  // ✅ "2025-11-23T10:00:00Z"
+```
+
 ---
 
 ## 📋 Complete API Endpoints
@@ -28,16 +90,16 @@ curl https://githubnasilkullanilmaz.vercel.app/api/health
 
 **POST** `/api/auth/register`
 
+**⚠️ DEĞİŞTİ:** `username` kaldırıldı, sadece `email` ve `fullName` gerekli!
+
 ```bash
 curl -X POST https://githubnasilkullanilmaz.vercel.app/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "mehmet",
     "email": "mehmet@example.com",
     "password": "123456",
     "fullName": "Mehmet Öz",
-    "role": "operator",
-    "amirId": "550e8400-e29b-41d4-a716-446655440000"
+    "role": "operator"
   }'
 ```
 
@@ -48,13 +110,14 @@ curl -X POST https://githubnasilkullanilmaz.vercel.app/api/auth/register \
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "123e4567-e89b-12d3-a456-426614174000",
-    "username": "mehmet",
     "email": "mehmet@example.com",
     "fullName": "Mehmet Öz",
     "role": "operator"
   }
 }
 ```
+
+**⚠️ Artık response'da `username` YOK!**
 
 ---
 
@@ -78,13 +141,14 @@ curl -X POST https://githubnasilkullanilmaz.vercel.app/api/auth/login \
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "123e4567-e89b-12d3-a456-426614174000",
-    "username": "mehmet",
     "email": "mehmet@example.com",
     "fullName": "Mehmet Öz",
     "role": "operator"
   }
 }
 ```
+
+**⚠️ Artık response'da `username` YOK!**
 
 ---
 
@@ -101,14 +165,14 @@ curl https://githubnasilkullanilmaz.vercel.app/api/auth/me \
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
-  "username": "mehmet",
   "email": "mehmet@example.com",
   "fullName": "Mehmet Öz",
   "role": "operator",
-  "createdAt": "2025-11-23T10:00:00Z",
-  "updatedAt": "2025-11-23T10:00:00Z"
+  "createdAt": "2025-11-23T10:00:00Z"
 }
 ```
+
+**⚠️ Artık `username` ve `updatedAt` YOK!**
 
 ---
 
@@ -149,7 +213,7 @@ curl -X POST https://githubnasilkullanilmaz.vercel.app/api/production-records \
 {
   "message": "Production record created successfully",
   "record": {
-    "id": "789e4567-e89b-12d3-a456-426614174999",
+    "id": 1,
     "tarih": "2025-11-23",
     "vardiyaNo": "1",
     "hatNo": "HAT-2",
@@ -157,13 +221,11 @@ curl -X POST https://githubnasilkullanilmaz.vercel.app/api/production-records \
     "operatorId": "123e4567-e89b-12d3-a456-426614174000",
     "operator": {
       "id": "123e4567-e89b-12d3-a456-426614174000",
-      "username": "mehmet",
       "full_name": "Mehmet Öz"
     },
     "bolumSorumlusuId": "550e8400-e29b-41d4-a716-446655440000",
     "bolumSorumlusu": {
       "id": "550e8400-e29b-41d4-a716-446655440000",
-      "username": "ahmet",
       "full_name": "Ahmet Yılmaz"
     },
     "urunKodu": "PRD-001",
@@ -180,12 +242,12 @@ curl -X POST https://githubnasilkullanilmaz.vercel.app/api/production-records \
     "isBaslangic": "08:00",
     "isBitis": "16:00",
     "molaVar": 1,
-    "createdBy": "123e4567-e89b-12d3-a456-426614174000",
-    "createdAt": "2025-11-23T10:30:00Z",
-    "updatedAt": "2025-11-23T10:30:00Z"
+    "createdAt": "2025-11-23T10:30:00Z"
   }
 }
 ```
+
+**⚠️ Artık `createdBy`, `creator`, `updatedAt` YOK! Operator ve Bölüm Sorumlusu'da sadece `id` ve `full_name` var (username yok)!**
 
 ---
 
@@ -219,7 +281,7 @@ curl "https://githubnasilkullanilmaz.vercel.app/api/production-records?page=1&li
 {
   "records": [
     {
-      "id": "789e4567-e89b-12d3-a456-426614174999",
+      "id": 1,
       "tarih": "2025-11-23",
       "vardiyaNo": "1",
       "hatNo": "HAT-2",
@@ -227,13 +289,11 @@ curl "https://githubnasilkullanilmaz.vercel.app/api/production-records?page=1&li
       "operatorId": "123e4567-e89b-12d3-a456-426614174000",
       "operator": {
         "id": "123e4567-e89b-12d3-a456-426614174000",
-        "username": "mehmet",
         "full_name": "Mehmet Öz"
       },
       "bolumSorumlusuId": "550e8400-e29b-41d4-a716-446655440000",
       "bolumSorumlusu": {
         "id": "550e8400-e29b-41d4-a716-446655440000",
-        "username": "ahmet",
         "full_name": "Ahmet Yılmaz"
       },
       "urunKodu": "PRD-001",
@@ -250,9 +310,7 @@ curl "https://githubnasilkullanilmaz.vercel.app/api/production-records?page=1&li
       "isBaslangic": "08:00",
       "isBitis": "16:00",
       "molaVar": 1,
-      "createdBy": "123e4567-e89b-12d3-a456-426614174000",
-      "createdAt": "2025-11-23T10:30:00Z",
-      "updatedAt": "2025-11-23T10:30:00Z"
+      "createdAt": "2025-11-23T10:30:00Z"
     }
   ],
   "totalRecords": 1,
@@ -261,18 +319,22 @@ curl "https://githubnasilkullanilmaz.vercel.app/api/production-records?page=1&li
 }
 ```
 
+**⚠️ Her kayıtta `createdBy`, `creator`, `updatedAt` YOK! ID artık bigint (sayı), UUID değil!**
+
 ---
 
 ### 7️⃣ Get Single Production Record
 
 **GET** `/api/production-records/:id`
 
+**⚠️ ID artık bigint (sayı): `/api/production-records/1` (UUID değil!)**
+
 ```bash
-curl https://githubnasilkullanilmaz.vercel.app/api/production-records/789e4567-e89b-12d3-a456-426614174999 \
+curl https://githubnasilkullanilmaz.vercel.app/api/production-records/1 \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
-**Response:** Same as single record object above
+**Response:** Same as single record object above (createdBy, creator, updatedAt YOK!)
 
 ---
 
@@ -280,8 +342,10 @@ curl https://githubnasilkullanilmaz.vercel.app/api/production-records/789e4567-e
 
 **PUT** `/api/production-records/:id`
 
+**⚠️ ID artık bigint (sayı): `/api/production-records/1`**
+
 ```bash
-curl -X PUT https://githubnasilkullanilmaz.vercel.app/api/production-records/789e4567-e89b-12d3-a456-426614174999 \
+curl -X PUT https://githubnasilkullanilmaz.vercel.app/api/production-records/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
@@ -296,7 +360,7 @@ curl -X PUT https://githubnasilkullanilmaz.vercel.app/api/production-records/789
 {
   "message": "Production record updated successfully",
   "record": {
-    "id": "789e4567-e89b-12d3-a456-426614174999",
+    "id": 1,
     "uretimAdedi": 175,
     "operatorHatasi": 2,
     "tezgahAyari": 2,
@@ -305,14 +369,18 @@ curl -X PUT https://githubnasilkullanilmaz.vercel.app/api/production-records/789
 }
 ```
 
+**⚠️ Response'da `updatedAt` YOK!**
+
 ---
 
 ### 9️⃣ Delete Production Record
 
 **DELETE** `/api/production-records/:id`
 
+**⚠️ ID artık bigint (sayı): `/api/production-records/1`**
+
 ```bash
-curl -X DELETE https://githubnasilkullanilmaz.vercel.app/api/production-records/789e4567-e89b-12d3-a456-426614174999 \
+curl -X DELETE https://githubnasilkullanilmaz.vercel.app/api/production-records/1 \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
@@ -341,28 +409,47 @@ Get your token from login/register response.
 
 ### Production Record Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `tarih` | DATE | Production date (YYYY-MM-DD) |
-| `vardiyaNo` | STRING | Shift number |
-| `hatNo` | STRING | Line number |
-| `tezgahNo` | STRING | Machine number |
-| `operatorId` | UUID | Operator user ID |
-| `bolumSorumlusuId` | UUID | Supervisor user ID |
-| `urunKodu` | STRING | Product code |
-| `yapilanIslem` | STRING | Operation performed |
-| `uretimAdedi` | INTEGER | Production quantity |
-| `dokumHatasi` | INTEGER | Casting error count |
-| `operatorHatasi` | INTEGER | Operator error count |
-| `islemHatasi` | INTEGER | Process error count |
-| `tezgahArizasi` | INTEGER | Machine breakdown (minutes) |
-| `tezgahAyari` | INTEGER | Machine setup (minutes) |
-| `elmasDegisimi` | INTEGER | Diamond change (minutes) |
-| `parcaBekleme` | INTEGER | Part waiting (minutes) |
-| `temizlik` | INTEGER | Cleaning (minutes) |
-| `isBaslangic` | TIME | Work start (HH:MM) |
-| `isBitis` | TIME | Work end (HH:MM) |
-| `molaVar` | INTEGER | Break duration (minutes) |
+| Field | Type | Description | ⚠️ Değişiklik |
+|-------|------|-------------|--------------|
+| `id` | **BIGINT** | Record ID (sayı, UUID değil!) | 🔴 Değişti |
+| `tarih` | DATE | Production date (YYYY-MM-DD) | |
+| `vardiyaNo` | STRING | Shift number | |
+| `hatNo` | STRING | Line number | |
+| `tezgahNo` | STRING | Machine number | |
+| `operatorId` | UUID | Operator user ID | |
+| `operator` | OBJECT | `{id, full_name}` | 🔴 `username` kaldırıldı |
+| `bolumSorumlusuId` | UUID | Supervisor user ID | |
+| `bolumSorumlusu` | OBJECT | `{id, full_name}` | 🔴 `username` kaldırıldı |
+| `urunKodu` | STRING | Product code | |
+| `yapilanIslem` | STRING | Operation performed | |
+| `uretimAdedi` | INTEGER | Production quantity | |
+| `dokumHatasi` | INTEGER | Casting error count | |
+| `operatorHatasi` | INTEGER | Operator error count | |
+| `islemHatasi` | INTEGER | Process error count | |
+| `tezgahArizasi` | INTEGER | Machine breakdown (minutes) | |
+| `tezgahAyari` | INTEGER | Machine setup (minutes) | |
+| `elmasDegisimi` | INTEGER | Diamond change (minutes) | |
+| `parcaBekleme` | INTEGER | Part waiting (minutes) | |
+| `temizlik` | INTEGER | Cleaning (minutes) | |
+| `isBaslangic` | TIME | Work start (HH:MM) | |
+| `isBitis` | TIME | Work end (HH:MM) | |
+| `molaVar` | INTEGER | Break duration (minutes) | |
+| `createdAt` | TIMESTAMP | Creation time | |
+| ~~`createdBy`~~ | - | **KALDIRILDI** | 🔴 Artık yok |
+| ~~`creator`~~ | - | **KALDIRILDI** | 🔴 Artık yok |
+| ~~`updatedAt`~~ | - | **KALDIRILDI** | 🔴 Artık yok |
+
+### User Fields
+
+| Field | Type | Description | ⚠️ Değişiklik |
+|-------|------|-------------|--------------|
+| `id` | UUID | User ID | |
+| `email` | STRING | Email (login için) | ✅ Login artık email ile |
+| `fullName` | STRING | Full name | |
+| `role` | STRING | User role | |
+| `createdAt` | TIMESTAMP | Creation time | |
+| ~~`username`~~ | - | **KALDIRILDI** | 🔴 Artık yok |
+| ~~`updatedAt`~~ | - | **KALDIRILDI** | 🔴 Artık yok |
 
 ---
 

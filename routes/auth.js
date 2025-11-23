@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const supabase = require('../config/database');
+const { jwtSecret } = require('../config/secrets');
 require('dotenv').config();
 
 // Register
@@ -117,7 +118,7 @@ router.post('/login',
       // Generate token
       const token = jwt.sign(
         { userId: user.id },
-        process.env.JWT_SECRET,
+        jwtSecret,
         { expiresIn: '7d' }
       );
 

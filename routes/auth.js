@@ -10,7 +10,6 @@ require('dotenv').config();
 // Register
 router.post('/register',
   [
-    body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
     body('email').isEmail().withMessage('Please enter a valid email'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('fullName').optional().trim()
@@ -22,13 +21,13 @@ router.post('/register',
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { username, email, password, fullName, role } = req.body;
+      const { email, password, fullName, role } = req.body;
 
       // Check if user exists
       const { data: existingUser } = await supabase
         .from('users')
         .select('*')
-        .or(`email.eq.${email},username.eq.${username}`)
+        .eq('email', email)
         .single();
 
       if (existingUser) {
@@ -43,14 +42,11 @@ router.post('/register',
       const { data: user, error } = await supabase
         .from('users')
         .insert([{
-          username,
           email,
-          password: hashedPassword,
-          full_name: fullName,
+          password_hash: hashedPassword,
+          full_name: fullName || 'User',
           role: role || 'operator',
-          amir_id: req.body.amirId || null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          amir_id: req.body.amirId || null
         }])
         .select()
         .single();
@@ -60,7 +56,7 @@ router.post('/register',
       // Generate token
       const token = jwt.sign(
         { userId: user.id },
-        process.env.JWT_SECRET,
+        jwtSecret,
         { expiresIn: '7d' }
       );
 
@@ -69,7 +65,6 @@ router.post('/register',
         token,
         user: {
           id: user.id,
-          username: user.username,
           email: user.email,
           fullName: user.full_name,
           role: user.role
@@ -109,7 +104,7 @@ router.post('/login',
       }
 
       // Check password
-      const isMatch = await bcrypt.compare(password, user.password);
+      const isMatch = await bcrypt.compare(password, user.password_hash);
 
       if (!isMatch) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -127,7 +122,6 @@ router.post('/login',
         token,
         user: {
           id: user.id,
-          username: user.username,
           email: user.email,
           fullName: user.full_name,
           role: user.role
@@ -145,7 +139,7 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, username, email, full_name, role, created_at, updated_at')
+      .select('id, email, full_name, role, created_at')
       .eq('id', req.userId)
       .single();
 
@@ -155,12 +149,10 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
 
     res.json({
       id: user.id,
-      username: user.username,
       email: user.email,
       fullName: user.full_name,
       role: user.role,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at
+      createdAt: user.created_at
     });
   } catch (error) {
     console.error(error);

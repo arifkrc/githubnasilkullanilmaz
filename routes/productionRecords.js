@@ -25,9 +25,8 @@ router.get('/', authMiddleware, async (req, res) => {
       .from('production_records')
       .select(`
         *,
-        operator:users!operator_id(id, username, full_name),
-        bolum_sorumlusu:users!bolum_sorumlusu_id(id, username, full_name),
-        creator:users!created_by(id, username, full_name)
+        operator:users!operator_id(id, full_name),
+        bolum_sorumlusu:users!bolum_sorumlusu_id(id, full_name)
       `, { count: 'exact' });
 
     // Apply filters
@@ -68,10 +67,7 @@ router.get('/', authMiddleware, async (req, res) => {
         isBaslangic: record.is_baslangic,
         isBitis: record.is_bitis,
         molaVar: record.mola_var,
-        createdBy: record.created_by,
-        creator: record.creator,
-        createdAt: record.created_at,
-        updatedAt: record.updated_at
+        createdAt: record.created_at
       })),
       totalRecords: count,
       totalPages: Math.ceil(count / limit),
@@ -90,9 +86,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
       .from('production_records')
       .select(`
         *,
-        operator:users!operator_id(id, username, full_name),
-        bolum_sorumlusu:users!bolum_sorumlusu_id(id, username, full_name),
-        creator:users!created_by(id, username, full_name)
+        operator:users!operator_id(id, full_name),
+        bolum_sorumlusu:users!bolum_sorumlusu_id(id, full_name)
       `)
       .eq('id', req.params.id)
       .single();
@@ -125,10 +120,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
       isBaslangic: data.is_baslangic,
       isBitis: data.is_bitis,
       molaVar: data.mola_var,
-      createdBy: data.created_by,
-      creator: data.creator,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      createdAt: data.created_at
     });
   } catch (error) {
     console.error(error);
@@ -170,10 +162,7 @@ router.post('/',
         temizlik: req.body.temizlik || 0,
         is_baslangic: req.body.isBaslangic,
         is_bitis: req.body.isBitis,
-        mola_var: req.body.molaVar || 0,
-        created_by: req.userId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        mola_var: req.body.molaVar || 0
       };
 
       const { data, error } = await supabase
@@ -181,7 +170,8 @@ router.post('/',
         .insert([recordData])
         .select(`
           *,
-          creator:users!created_by(id, username, full_name)
+          operator:users!operator_id(id, full_name),
+          bolum_sorumlusu:users!bolum_sorumlusu_id(id, full_name)
         `)
         .single();
 
@@ -195,13 +185,16 @@ router.post('/',
           vardiyaNo: data.vardiya_no,
           hatNo: data.hat_no,
           tezgahNo: data.tezgah_no,
+          operatorId: data.operator_id,
           operator: data.operator,
+          bolumSorumlusuId: data.bolum_sorumlusu_id,
           bolumSorumlusu: data.bolum_sorumlusu,
           urunKodu: data.urun_kodu,
           yapilanIslem: data.yapilan_islem,
           uretimAdedi: data.uretim_adedi,
           dokumHatasi: data.dokum_hatasi,
           operatorHatasi: data.operator_hatasi,
+          islemHatasi: data.islem_hatasi,
           tezgahArizasi: data.tezgah_arizasi,
           tezgahAyari: data.tezgah_ayari,
           elmasDegisimi: data.elmas_degisimi,
@@ -209,11 +202,8 @@ router.post('/',
           temizlik: data.temizlik,
           isBaslangic: data.is_baslangic,
           isBitis: data.is_bitis,
-          molaVarYok: data.mola_var_yok,
-          createdBy: data.created_by,
-          creator: data.creator,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
+          molaVar: data.mola_var,
+          createdAt: data.created_at
         }
       });
     } catch (error) {
@@ -256,8 +246,7 @@ router.put('/:id',
         temizlik: req.body.temizlik,
         is_baslangic: req.body.isBaslangic,
         is_bitis: req.body.isBitis,
-        mola_var: req.body.molaVar,
-        updated_at: new Date().toISOString()
+        mola_var: req.body.molaVar
       };
 
       // Remove undefined values
@@ -271,7 +260,8 @@ router.put('/:id',
         .eq('id', req.params.id)
         .select(`
           *,
-          creator:users!created_by(id, username, full_name)
+          operator:users!operator_id(id, full_name),
+          bolum_sorumlusu:users!bolum_sorumlusu_id(id, full_name)
         `)
         .single();
 
@@ -287,13 +277,16 @@ router.put('/:id',
           vardiyaNo: data.vardiya_no,
           hatNo: data.hat_no,
           tezgahNo: data.tezgah_no,
+          operatorId: data.operator_id,
           operator: data.operator,
+          bolumSorumlusuId: data.bolum_sorumlusu_id,
           bolumSorumlusu: data.bolum_sorumlusu,
           urunKodu: data.urun_kodu,
           yapilanIslem: data.yapilan_islem,
           uretimAdedi: data.uretim_adedi,
           dokumHatasi: data.dokum_hatasi,
           operatorHatasi: data.operator_hatasi,
+          islemHatasi: data.islem_hatasi,
           tezgahArizasi: data.tezgah_arizasi,
           tezgahAyari: data.tezgah_ayari,
           elmasDegisimi: data.elmas_degisimi,
@@ -301,11 +294,8 @@ router.put('/:id',
           temizlik: data.temizlik,
           isBaslangic: data.is_baslangic,
           isBitis: data.is_bitis,
-          molaVarYok: data.mola_var_yok,
-          createdBy: data.created_by,
-          creator: data.creator,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
+          molaVar: data.mola_var,
+          createdAt: data.created_at
         }
       });
     } catch (error) {

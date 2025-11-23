@@ -144,7 +144,6 @@
             <div class="endpoint-info">
                 <strong>POST</strong> <code>/api/auth/register</code>
             </div>
-            <input type="text" id="regUsername" placeholder="Kullanıcı Adı" value="testuser">
             <input type="email" id="regEmail" placeholder="Email" value="test@example.com">
             <input type="password" id="regPassword" placeholder="Şifre" value="123456">
             <input type="text" id="regFullName" placeholder="Ad Soyad" value="Test User">
@@ -236,7 +235,6 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        username: document.getElementById('regUsername').value,
                         email: document.getElementById('regEmail').value,
                         password: document.getElementById('regPassword').value,
                         fullName: document.getElementById('regFullName').value,
